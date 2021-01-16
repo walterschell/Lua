@@ -39,18 +39,21 @@ target_include_directories(lua_static PUBLIC "include")
 if(UNIX)
 	set(LUA_DEFINITIONS)
     
-    find_library(LIBM m)
-    #TODO: Redo this with find_package
-    if(NOT LIBM)
-        message(FATAL_ERROR "libm not found and requred by lua")
-    endif()
-    target_link_libraries(lua_static INTERFACE ${LIBM})
+    if(NOT EMSCRIPTEN)
+        find_library(LIBM m)
+        #TODO: Redo this with find_package
+        if(NOT LIBM)
+            message(FATAL_ERROR "libm not found and requred by lua")
+        endif()
+        target_link_libraries(lua_static INTERFACE ${LIBM})
 
-    list(APPEND LUA_DEFINITIONS LUA_USE_POSIX)
-    if(LUA_SUPPORT_DL)
-        target_compile_definitions(lua_static PRIVATE "LUA_USE_DLOPEN")
-        target_link_libraries(lua_static INTERFACE dl)
+        list(APPEND LUA_DEFINITIONS LUA_USE_POSIX)
+        if(LUA_SUPPORT_DL)
+            target_compile_definitions(lua_static PRIVATE "LUA_USE_DLOPEN")
+            target_link_libraries(lua_static INTERFACE dl)
+        endif()
     endif()
+
 	target_compile_definitions(lua_static 
 		PUBLIC ${LUA_DEFINITIONS}
 	)
