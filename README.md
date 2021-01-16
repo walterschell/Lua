@@ -1,5 +1,9 @@
 # Lua
-CMake based build of Lua 5.4.0
+CMake based build of Lua 5.4.0  
+![Build Linux](https://github.com/walterschell/Lua/workflows/Build%20Linux/badge.svg)  
+![Build Windows](https://github.com/walterschell/Lua/workflows/Build%20Windows/badge.svg)  
+![Build OSX](https://github.com/walterschell/Lua/workflows/Build%20OSX/badge.svg)  
+![Build Emscripten](https://github.com/walterschell/Lua/workflows/Build%20Emscripten/badge.svg)  
 # Usage
 Inside of CMakeLists.txt
 ```cmake

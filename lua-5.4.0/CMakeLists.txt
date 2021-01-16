@@ -32,29 +32,35 @@ set(LUA_LIB_SRCS
     "src/lutf8lib.c"
     "src/linit.c"
 )
-#TODO: Redo this with find_package
-find_library(LIBM m)
-if(NOT LIBM)
-    message(FATAL_ERROR "libm not found and requred by lua")
-endif()
+
 add_library(lua_static STATIC ${LUA_LIB_SRCS})
 set_target_properties(lua_static PROPERTIES OUTPUT_NAME "lua")
-target_link_libraries(lua_static INTERFACE ${LIBM})
 target_include_directories(lua_static PUBLIC "include")
-set(LUA_DEFINITIONS)
 if(UNIX)
-    list(APPEND LUA_DEFINITIONS LUA_USE_POSIX)
-    if(LUA_SUPPORT_DL)
-        target_compile_definitions(lua_static PRIVATE "LUA_USE_DLOPEN")
-        target_link_libraries(lua_static INTERFACE dl)
+	set(LUA_DEFINITIONS)
+    
+    if(NOT EMSCRIPTEN)
+        find_library(LIBM m)
+        #TODO: Redo this with find_package
+        if(NOT LIBM)
+            message(FATAL_ERROR "libm not found and requred by lua")
+        endif()
+        target_link_libraries(lua_static INTERFACE ${LIBM})
+
+        list(APPEND LUA_DEFINITIONS LUA_USE_POSIX)
+        if(LUA_SUPPORT_DL)
+            target_compile_definitions(lua_static PRIVATE "LUA_USE_DLOPEN")
+            target_link_libraries(lua_static INTERFACE dl)
+        endif()
     endif()
+
+	target_compile_definitions(lua_static 
+		PUBLIC ${LUA_DEFINITIONS}
+	)
+	target_compile_options(lua_static
+		PRIVATE "-Wall" "-Wextra"
+	)
 endif()
-target_compile_definitions(lua_static 
-    PUBLIC ${LUA_DEFINITIONS}
-)
-target_compile_options(lua_static
-    PRIVATE "-Wall" "-Wextra"
-)
 
 if(LUA_BUILD_BINARY)
     include(CheckIncludeFile)
