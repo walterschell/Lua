@@ -36,8 +36,8 @@ set(LUA_LIB_SRCS
 add_library(lua_static STATIC ${LUA_LIB_SRCS})
 set_target_properties(lua_static PROPERTIES OUTPUT_NAME "lua")
 target_include_directories(lua_static PUBLIC "include")
-set(LUA_DEFINITIONS)
 if(UNIX)
+	set(LUA_DEFINITIONS)
     
     find_library(LIBM m)
     #TODO: Redo this with find_package
@@ -51,13 +51,13 @@ if(UNIX)
         target_compile_definitions(lua_static PRIVATE "LUA_USE_DLOPEN")
         target_link_libraries(lua_static INTERFACE dl)
     endif()
+	target_compile_definitions(lua_static 
+		PUBLIC ${LUA_DEFINITIONS}
+	)
+	target_compile_options(lua_static
+		PRIVATE "-Wall" "-Wextra"
+	)
 endif()
-target_compile_definitions(lua_static 
-    PUBLIC ${LUA_DEFINITIONS}
-)
-target_compile_options(lua_static
-    PRIVATE "-Wall" "-Wextra"
-)
 
 if(LUA_BUILD_BINARY)
     include(CheckIncludeFile)
