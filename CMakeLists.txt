@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(lua LANGUAGES C VERSION 5.4.0)
+project(lua LANGUAGES C VERSION 5.4.2)
 
 option(LUA_SUPPORT_DL "Support dynamic loading of compiled modules" OFF)
 
@@ -18,4 +18,4 @@ else()
 endif()
 
 
-add_subdirectory(lua-5.4.0)
+add_subdirectory(lua-5.4.2)
