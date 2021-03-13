@@ -1,5 +1,5 @@
 # Lua
-CMake based build of Lua 5.4.2
+CMake based build of Lua 5.4.2  
 ![Build Linux](https://github.com/walterschell/Lua/workflows/Build%20Linux/badge.svg)  
 ![Build Windows](https://github.com/walterschell/Lua/workflows/Build%20Windows/badge.svg)  
 ![Build OSX](https://github.com/walterschell/Lua/workflows/Build%20OSX/badge.svg)  
