@@ -33,6 +33,10 @@ set(LUA_LIB_SRCS
     "src/linit.c"
 )
 
+if(LUA_BUILD_AS_CXX)
+	SET_SOURCE_FILES_PROPERTIES(${LUA_LIB_SRCS} PROPERTIES LANGUAGE CXX )
+endif()
+
 add_library(lua_static STATIC ${LUA_LIB_SRCS})
 set_target_properties(lua_static PROPERTIES OUTPUT_NAME "lua")
 target_include_directories(lua_static PUBLIC "include")
