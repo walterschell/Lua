@@ -34,7 +34,7 @@ set(LUA_LIB_SRCS
 )
 
 if(LUA_BUILD_AS_CXX)
-	SET_SOURCE_FILES_PROPERTIES(${LUA_LIB_SRCS} PROPERTIES LANGUAGE CXX )
+	set_source_files_properties(${LUA_LIB_SRCS} "src/lua.c" "src/luac.c" PROPERTIES LANGUAGE CXX )
 endif()
 
 add_library(lua_static STATIC ${LUA_LIB_SRCS})
