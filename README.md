@@ -1,5 +1,5 @@
 # Lua
-CMake based build of Lua 5.4.2  
+CMake based build of Lua 5.4.3  
 | Build as C | Build as C++ |
 | --: | --: |
 | ![Build Linux](https://github.com/walterschell/Lua/actions/workflows/build-linux.yml/badge.svg?branch=master) | ![Build Linux as C++](https://github.com/walterschell/Lua/actions/workflows/build-emscripten-cxx.yml/badge.svg?branch=master) |
