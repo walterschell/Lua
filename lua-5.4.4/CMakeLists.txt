@@ -38,8 +38,14 @@ if(LUA_BUILD_AS_CXX)
 endif()
 
 add_library(lua_static STATIC ${LUA_LIB_SRCS})
-set_target_properties(lua_static PROPERTIES OUTPUT_NAME "lua")
-target_include_directories(lua_static PUBLIC "include")
+set_target_properties(lua_static PROPERTIES
+    OUTPUT_NAME "lua"
+    VERSION "${PACKAGE_VERSION}"
+)
+target_include_directories(lua_static PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 if(UNIX)
 	set(LUA_DEFINITIONS)
     
@@ -49,7 +55,7 @@ if(UNIX)
         if(NOT LIBM)
             message(FATAL_ERROR "libm not found and is required by lua")
         endif()
-        target_link_libraries(lua_static INTERFACE ${LIBM})
+        target_link_libraries(lua_static INTERFACE m)
 
         list(APPEND LUA_DEFINITIONS LUA_USE_POSIX)
         if(LUA_SUPPORT_DL)
@@ -81,6 +87,7 @@ if(LUA_BUILD_BINARY)
         target_link_libraries(lua PUBLIC readline)
     endif()
 endif()
+
 if(LUA_BUILD_COMPILER)
     add_executable(luac "src/luac.c")
     target_link_libraries(luac PUBLIC lua_static)
@@ -88,3 +95,35 @@ if(LUA_BUILD_COMPILER)
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     )
 endif()
+
+install(TARGETS lua_static
+        EXPORT LuaTargets
+        ARCHIVE DESTINATION lib
+        PUBLIC_HEADER DESTINATION include
+)
+
+install(DIRECTORY include/ TYPE INCLUDE)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    LuaConfigVersion.cmake
+    VERSION ${PACKAGE_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(EXPORT LuaTargets
+        FILE LuaTargets.cmake
+        DESTINATION "lib/cmake"
+)
+
+configure_package_config_file(
+    LuaConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/LuaConfig.cmake"
+    INSTALL_DESTINATION "lib/cmake"
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/LuaConfig.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/LuaConfigVersion.cmake"
+        DESTINATION "lib/cmake"
+)

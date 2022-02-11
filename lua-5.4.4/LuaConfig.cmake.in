@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/LuaTargets.cmake")
+
+set_and_check(LUA_INCLUDE_DIR "${PACKAGE_PREFIX_DIR}/include")
+set_and_check(LUA_LIBRARY "${PACKAGE_PREFIX_DIR}/lib/liblua.a")
+set(LUA_LIBRARIES "${LUA_LIBRARY}")
+add_library(Lua::Library ALIAS lua_static)
+
+check_required_components(Lua)
