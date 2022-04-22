@@ -37,12 +37,16 @@ if(LUA_BUILD_AS_CXX)
 	set_source_files_properties(${LUA_LIB_SRCS} "src/lua.c" "src/luac.c" PROPERTIES LANGUAGE CXX )
 endif()
 
-add_library(lua_static STATIC ${LUA_LIB_SRCS})
-set_target_properties(lua_static PROPERTIES
+add_library(lua_obj OBJECT ${LUA_LIB_SRCS})
+
+add_library(lua_lib)
+target_link_libraries(lua_lib PRIVATE lua_obj)
+set_target_properties(lua_lib PROPERTIES
     OUTPUT_NAME "lua"
     VERSION "${PACKAGE_VERSION}"
 )
-target_include_directories(lua_static PUBLIC
+
+target_include_directories(lua_obj PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -55,22 +59,30 @@ if(UNIX)
         if(NOT LIBM)
             message(FATAL_ERROR "libm not found and is required by lua")
         endif()
-        target_link_libraries(lua_static INTERFACE m)
+        target_link_libraries(lua_obj INTERFACE m)
 
         list(APPEND LUA_DEFINITIONS LUA_USE_POSIX)
         if(LUA_SUPPORT_DL)
-            target_compile_definitions(lua_static PRIVATE "LUA_USE_DLOPEN")
-            target_link_libraries(lua_static INTERFACE dl)
+            target_compile_definitions(lua_obj PRIVATE "LUA_USE_DLOPEN")
+            target_link_libraries(lua_obj INTERFACE dl)
         endif()
     endif()
 
-	target_compile_definitions(lua_static 
+	target_compile_definitions(lua_obj 
 		PUBLIC ${LUA_DEFINITIONS}
 	)
-	target_compile_options(lua_static
+	target_compile_options(lua_obj
 		PRIVATE "-Wall" "-Wextra"
 	)
 endif()
+
+if (WIN32 AND BUILD_SHARED_LIBS)
+    target_compile_definitions(lua_obj 
+		PRIVATE LUA_BUILD_AS_DLL
+	)
+endif()
+
+set(TARGETS_TO_INSTALL lua_lib)
 
 if(LUA_BUILD_BINARY)
     include(CheckIncludeFile)
@@ -78,28 +90,28 @@ if(LUA_BUILD_BINARY)
 
 
     add_executable(lua "src/lua.c")
-    target_link_libraries(lua PUBLIC lua_static)
+    target_link_libraries(lua PRIVATE lua_obj)
     set_target_properties(lua PROPERTIES 
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     )
     if (HAVE_READLINE_READLINE_H)
-        target_compile_definitions(lua PUBLIC "LUA_USE_READLINE")
+        target_compile_definitions(lua PRIVATE "LUA_USE_READLINE")
         target_link_libraries(lua PUBLIC readline)
     endif()
+    list(APPEND TARGETS_TO_INSTALL lua)
 endif()
 
 if(LUA_BUILD_COMPILER)
     add_executable(luac "src/luac.c")
-    target_link_libraries(luac PUBLIC lua_static)
+    target_link_libraries(luac PRIVATE lua_obj)
     set_target_properties(luac PROPERTIES 
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     )
+    list(APPEND TARGETS_TO_INSTALL luac)
 endif()
 
-install(TARGETS lua_static
+install(TARGETS ${TARGETS_TO_INSTALL}
         EXPORT LuaTargets
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include
 )
 
 install(DIRECTORY include/ TYPE INCLUDE)
