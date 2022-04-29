@@ -33,18 +33,48 @@ set(LUA_LIB_SRCS
     "src/linit.c"
 )
 
+set(TARGETS_TO_INSTALL lua_obj)
+
 if(LUA_BUILD_AS_CXX)
 	set_source_files_properties(${LUA_LIB_SRCS} "src/lua.c" "src/luac.c" PROPERTIES LANGUAGE CXX )
 endif()
 
 add_library(lua_obj OBJECT ${LUA_LIB_SRCS})
 
-add_library(lua_lib)
-target_link_libraries(lua_lib PRIVATE lua_obj)
-set_target_properties(lua_lib PROPERTIES
-    OUTPUT_NAME "lua"
-    VERSION "${PACKAGE_VERSION}"
-)
+if(LUA_ENABLE_SHARED)
+    add_library(lua_dynamic SHARED)
+    target_link_libraries(lua_dynamic PUBLIC lua_obj)
+    set_target_properties(lua_dynamic PROPERTIES
+        VERSION "${PACKAGE_VERSION}"
+    )
+    list(APPEND TARGETS_TO_INSTALL lua_dynamic)
+    if(BUILD_SHARED_LIBS)
+        set(LUA_EXPORT_LIBRARY lua_dynamic)
+        add_library(Lua::Lib ALIAS lua_dynamic)
+    elseif(NOT TOP_LEVEL)
+        set_target_properties(lua_dynamic PROPERTIES
+            EXCLUDE_FROM_ALL ON
+        )
+    endif()
+endif()
+
+if(LUA_ENABLE_STATIC)
+    add_library(lua_static STATIC)
+    target_link_libraries(lua_static PUBLIC lua_obj)
+    set_target_properties(lua_static PROPERTIES
+        VERSION "${PACKAGE_VERSION}"
+    )
+    list(APPEND TARGETS_TO_INSTALL lua_static)
+    if(NOT BUILD_SHARED_LIBS)
+        set(LUA_EXPORT_LIBRARY lua_static)
+        add_library(Lua::Lib ALIAS lua_static)
+    elseif(NOT TOP_LEVEL)
+        set_target_properties(lua_static PROPERTIES
+            EXCLUDE_FROM_ALL ON
+        )
+    endif()
+endif()
+
 
 target_include_directories(lua_obj PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -76,13 +106,11 @@ if(UNIX)
 	)
 endif()
 
-if (WIN32 AND BUILD_SHARED_LIBS)
+if (WIN32)
     target_compile_definitions(lua_obj 
 		PRIVATE LUA_BUILD_AS_DLL
 	)
 endif()
-
-set(TARGETS_TO_INSTALL lua_lib)
 
 if(LUA_BUILD_BINARY)
     include(CheckIncludeFile)
@@ -90,6 +118,7 @@ if(LUA_BUILD_BINARY)
 
 
     add_executable(lua "src/lua.c")
+    # Can not use lua_dynamic because some symbols are not exported
     target_link_libraries(lua PRIVATE lua_obj)
     set_target_properties(lua PROPERTIES 
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -127,6 +156,7 @@ write_basic_package_version_file(
 install(EXPORT LuaTargets
         FILE LuaTargets.cmake
         DESTINATION "lib/cmake"
+        NAMESPACE Lua::
 )
 
 configure_package_config_file(

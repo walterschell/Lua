@@ -3,7 +3,13 @@ project(lua LANGUAGES C VERSION 5.4.4)
 
 option(LUA_SUPPORT_DL "Support dynamic loading of compiled modules" OFF)
 option(LUA_BUILD_AS_CXX "Build lua as C++" OFF)
+option(LUA_ENABLE_SHARED "Build dynamic liblua" ON)
+option(LUA_ENABLE_STATIC "Build static liblua" ON)
 enable_language(CXX)
+
+if(NOT LUA_ENABLE_SHARED AND NOT LUA_ENABLE_STATIC)
+    message(FATAL_ERROR "You must enable at least one of static or dynamic version of liblua")
+endif()
 
 if(${PROJECT_NAME} STREQUAL ${CMAKE_PROJECT_NAME})
     set(TOP_LEVEL TRUE)
