@@ -33,82 +33,77 @@ set(LUA_LIB_SRCS
     "src/linit.c"
 )
 
-set(TARGETS_TO_INSTALL lua_obj)
+set(TARGETS_TO_INSTALL lua_internal lua_include)
 
 if(LUA_BUILD_AS_CXX)
 	set_source_files_properties(${LUA_LIB_SRCS} "src/lua.c" "src/luac.c" PROPERTIES LANGUAGE CXX )
 endif()
 
-add_library(lua_obj OBJECT ${LUA_LIB_SRCS})
+add_library(lua_internal INTERFACE)
 
-if(LUA_ENABLE_SHARED)
-    add_library(lua_dynamic SHARED)
-    target_link_libraries(lua_dynamic PUBLIC lua_obj)
-    set_target_properties(lua_dynamic PROPERTIES
-        VERSION "${PACKAGE_VERSION}"
-    )
-    list(APPEND TARGETS_TO_INSTALL lua_dynamic)
-    if(BUILD_SHARED_LIBS)
-        set(LUA_EXPORT_LIBRARY lua_dynamic)
-        add_library(Lua::Lib ALIAS lua_dynamic)
-    elseif(NOT TOP_LEVEL)
-        set_target_properties(lua_dynamic PROPERTIES
-            EXCLUDE_FROM_ALL ON
-        )
-    endif()
-endif()
+add_library(lua_include INTERFACE)
 
-if(LUA_ENABLE_STATIC)
-    add_library(lua_static STATIC)
-    target_link_libraries(lua_static PUBLIC lua_obj)
-    set_target_properties(lua_static PROPERTIES
-        VERSION "${PACKAGE_VERSION}"
-    )
-    list(APPEND TARGETS_TO_INSTALL lua_static)
-    if(NOT BUILD_SHARED_LIBS)
-        set(LUA_EXPORT_LIBRARY lua_static)
-        add_library(Lua::Lib ALIAS lua_static)
-    elseif(NOT TOP_LEVEL)
-        set_target_properties(lua_static PROPERTIES
-            EXCLUDE_FROM_ALL ON
-        )
-    endif()
-endif()
-
-
-target_include_directories(lua_obj PUBLIC
+target_include_directories(lua_include INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+
+target_link_libraries(lua_internal INTERFACE lua_include)
+
+if(LUA_ENABLE_SHARED)
+    add_library(lua_shared SHARED ${LUA_LIB_SRCS})
+    target_link_libraries(lua_shared PRIVATE lua_internal PUBLIC lua_include)
+    set_target_properties(lua_shared PROPERTIES
+        VERSION "${PACKAGE_VERSION}"
+    )
+    if(WIN32)
+        target_compile_definitions(lua_shared PRIVATE LUA_BUILD_AS_DLL)
+    endif()
+    list(APPEND TARGETS_TO_INSTALL lua_shared)
+    if(BUILD_SHARED_LIBS)
+        add_library(Lua::Library ALIAS lua_shared)
+    elseif(NOT TOP_LEVEL)
+        set_target_properties(lua_shared PROPERTIES
+            EXCLUDE_FROM_ALL ON
+        )
+    endif()
+endif()
+
+add_library(lua_static STATIC ${LUA_LIB_SRCS})
+target_link_libraries(lua_static PRIVATE lua_internal PUBLIC lua_include)
+set_target_properties(lua_static PROPERTIES
+    VERSION "${PACKAGE_VERSION}"
+)
+list(APPEND TARGETS_TO_INSTALL lua_static)
+if(NOT BUILD_SHARED_LIBS OR NOT LUA_ENABLE_SHARED)
+    add_library(Lua::Library ALIAS lua_static)
+endif()
+
+
 if(UNIX)
-	set(LUA_DEFINITIONS)
-    
     if(NOT EMSCRIPTEN)
         find_library(LIBM m)
         #TODO: Redo this with find_package
         if(NOT LIBM)
             message(FATAL_ERROR "libm not found and is required by lua")
         endif()
-        target_link_libraries(lua_obj INTERFACE m)
+        target_link_libraries(lua_internal INTERFACE m)
 
-        list(APPEND LUA_DEFINITIONS LUA_USE_POSIX)
+        target_compile_definitions(lua_internal 
+            INTERFACE LUA_USE_POSIX
+        )
         if(LUA_SUPPORT_DL)
-            target_compile_definitions(lua_obj PRIVATE "LUA_USE_DLOPEN")
-            target_link_libraries(lua_obj INTERFACE dl)
+            target_compile_definitions(lua_internal INTERFACE "LUA_USE_DLOPEN")
+            target_link_libraries(lua_internal INTERFACE dl)
         endif()
     endif()
 
-	target_compile_definitions(lua_obj 
-		PUBLIC ${LUA_DEFINITIONS}
+	target_compile_options(lua_internal
+		INTERFACE "-Wall" "-Wextra"
 	)
-	target_compile_options(lua_obj
-		PRIVATE "-Wall" "-Wextra"
-	)
-endif()
-
-if (WIN32)
-    target_compile_definitions(lua_obj 
-		PRIVATE LUA_BUILD_AS_DLL
+elseif(Win32)
+    target_compile_options(lua_internal
+		INTERFACE "/Wall"
 	)
 endif()
 
@@ -116,10 +111,9 @@ if(LUA_BUILD_BINARY)
     include(CheckIncludeFile)
     CHECK_INCLUDE_FILE("readline/readline.h" HAVE_READLINE_READLINE_H)
 
-
     add_executable(lua "src/lua.c")
-    # Can not use lua_dynamic because some symbols are not exported
-    target_link_libraries(lua PRIVATE lua_obj)
+    # Can not use lua_shared because some symbols are not exported
+    target_link_libraries(lua PRIVATE lua_static)
     set_target_properties(lua PROPERTIES 
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     )
@@ -132,7 +126,7 @@ endif()
 
 if(LUA_BUILD_COMPILER)
     add_executable(luac "src/luac.c")
-    target_link_libraries(luac PRIVATE lua_obj)
+    target_link_libraries(luac PRIVATE lua_static)
     set_target_properties(luac PROPERTIES 
         RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     )
@@ -147,6 +141,7 @@ install(DIRECTORY include/ TYPE INCLUDE)
 
 include(CMakePackageConfigHelpers)
 
+get_target_property(LUA_EXPORT_LIBRARY Lua::Library ALIASED_TARGET)
 write_basic_package_version_file(
     LuaConfigVersion.cmake
     VERSION ${PACKAGE_VERSION}
