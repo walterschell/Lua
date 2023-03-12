@@ -56,7 +56,7 @@ jobs:
     - name: Configure Test of CMake Package
       working-directory: ${{github.workspace}}
       shell: bash
-      run: cmake -S $GITHUB_WORKSPACE/lua-config-package-tests -B build-pkg-test -DCMAKE_PREFIX=$GITHUB_WORKSPACE/sysroot --debug-find
+      run: cmake -S $GITHUB_WORKSPACE/lua-config-package-tests -B build-pkg-test -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/sysroot --debug-find
 
     - name: Build Test of CMake Package
       working-directory: ${{github.workspace}}
