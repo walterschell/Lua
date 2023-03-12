@@ -150,17 +150,17 @@ write_basic_package_version_file(
 
 install(EXPORT LuaTargets
         FILE LuaTargets.cmake
-        DESTINATION "lib/share/cmake/Lua"
+        DESTINATION "share/cmake/Lua"
         NAMESPACE Lua::
 )
 
 configure_package_config_file(
     LuaConfig.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/LuaConfig.cmake"
-    INSTALL_DESTINATION "lib/share/cmake/Lua"
+    INSTALL_DESTINATION "share/cmake/Lua"
 )
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/LuaConfig.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/LuaConfigVersion.cmake"
-        DESTINATION "lib/share/cmake/Lua"
+        DESTINATION "share/cmake/Lua"
 )
