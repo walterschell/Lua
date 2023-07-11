@@ -3846,6 +3846,35 @@ when called through this function.
 
 
 
+<hr><h3><a name="lua_closethread"><code>lua_closethread</code></a></h3><p>
+<span class="apii">[-0, +?, &ndash;]</span>
+<pre>int lua_closethread (lua_State *L, lua_State *from);</pre>
+
+<p>
+Resets a thread, cleaning its call stack and closing all pending
+to-be-closed variables.
+Returns a status code:
+<a href="#pdf-LUA_OK"><code>LUA_OK</code></a> for no errors in the thread
+(either the original error that stopped the thread or
+errors in closing methods),
+or an error status otherwise.
+In case of error,
+leaves the error object on the top of the stack.
+
+
+<p>
+The parameter <code>from</code> represents the coroutine that is resetting <code>L</code>.
+If there is no such coroutine,
+this parameter can be <code>NULL</code>.
+
+
+<p>
+(This function was introduced in release&nbsp;5.4.6.)
+
+
+
+
+
 <hr><h3><a name="lua_compare"><code>lua_compare</code></a></h3><p>
 <span class="apii">[-0, +0, <em>e</em>]</span>
 <pre>int lua_compare (lua_State *L, int index1, int index2, int op);</pre>
@@ -5219,25 +5248,12 @@ and then pops the top element.
 
 <hr><h3><a name="lua_resetthread"><code>lua_resetthread</code></a></h3><p>
 <span class="apii">[-0, +?, &ndash;]</span>
-<pre>int lua_resetthread (lua_State *L, lua_State *from);</pre>
+<pre>int lua_resetthread (lua_State *L);</pre>
 
 <p>
-Resets a thread, cleaning its call stack and closing all pending
-to-be-closed variables.
-Returns a status code:
-<a href="#pdf-LUA_OK"><code>LUA_OK</code></a> for no errors in the thread
-(either the original error that stopped the thread or
-errors in closing methods),
-or an error status otherwise.
-In case of error,
-leaves the error object on the top of the stack.
-
-
-<p>
-The parameter <code>from</code> represents the coroutine that is resetting <code>L</code>.
-If there is no such coroutine,
-this parameter can be <code>NULL</code>.
-(This parameter was introduced in release&nbsp;5.4.5.)
+This function is deprecated;
+it is equivalent to <a href="#lua_closethread"><code>lua_closethread</code></a> with
+<code>from</code> being <code>NULL</code>.
 
 
 
@@ -12020,10 +12036,10 @@ and LiteralString, see <a href="#3.1">&sect;3.1</a>.)
 
 <P CLASS="footer">
 Last update:
-Tue Apr 18 12:51:25 UTC 2023
+Tue May  2 20:09:38 UTC 2023
 </P>
 <!--
-Last change: revised for Lua 5.4.5
+Last change: revised for Lua 5.4.6
 -->
 
 </body></html>
