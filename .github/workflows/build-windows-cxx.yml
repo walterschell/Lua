@@ -43,7 +43,23 @@ jobs:
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --config $BUILD_TYPE
 
+    - name: Install
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --install . --prefix $GITHUB_WORKSPACE/sysroot
+
     - name: Test
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: ctest -V -C $BUILD_TYPE
+
+    ## Test of installing as CXX doesn't really make sense
+    # - name: Configure Test of CMake Package
+    #   working-directory: ${{github.workspace}}
+    #   shell: bash
+    #   run: cmake -S $GITHUB_WORKSPACE/lua-config-package-tests -B build-pkg-test -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/sysroot
+
+    # - name: Build Test of CMake Package
+    #   working-directory: ${{github.workspace}}
+    #   shell: bash
+    #   run: cmake --build build-pkg-test

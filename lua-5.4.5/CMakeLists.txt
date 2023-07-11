@@ -35,6 +35,8 @@ set(LUA_LIB_SRCS
 
 set(TARGETS_TO_INSTALL lua_internal lua_include)
 
+set(LUA_LINKED_LIBRARIES)
+
 if(LUA_BUILD_AS_CXX)
 	set_source_files_properties(${LUA_LIB_SRCS} "src/lua.c" "src/luac.c" PROPERTIES LANGUAGE CXX )
 endif()
@@ -87,14 +89,17 @@ if(UNIX)
         if(NOT LIBM)
             message(FATAL_ERROR "libm not found and is required by lua")
         endif()
+        target_compile_definitions(lua_internal INTERFACE "LUA_USE_POSIX")
         target_link_libraries(lua_internal INTERFACE m)
-
-        target_compile_definitions(lua_internal 
-            INTERFACE LUA_USE_POSIX
-        )
+        list(APPEND LUA_LINKED_LIBRARIES m)
         if(LUA_SUPPORT_DL)
+            find_library(LIBDL "${CMAKE_DL_LIBS}")
+            if(NOT LIBDL)
+                message(FATAL_ERROR "libdl not found and is required by lua")
+            endif()
             target_compile_definitions(lua_internal INTERFACE "LUA_USE_DLOPEN")
-            target_link_libraries(lua_internal INTERFACE dl)
+            target_link_libraries(lua_internal INTERFACE "${CMAKE_DL_LIBS}")
+            list(APPEND LUA_LINKED_LIBRARIES "${CMAKE_DL_LIBS}")
         endif()
     endif()
 
@@ -150,17 +155,17 @@ write_basic_package_version_file(
 
 install(EXPORT LuaTargets
         FILE LuaTargets.cmake
-        DESTINATION "lib/cmake"
+        DESTINATION "share/cmake/Lua"
         NAMESPACE Lua::
 )
 
 configure_package_config_file(
     LuaConfig.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/LuaConfig.cmake"
-    INSTALL_DESTINATION "lib/cmake"
+    INSTALL_DESTINATION "share/cmake/Lua"
 )
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/LuaConfig.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/LuaConfigVersion.cmake"
-        DESTINATION "lib/cmake"
+        DESTINATION "share/cmake/Lua"
 )
