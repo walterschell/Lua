@@ -53,12 +53,13 @@ jobs:
       shell: bash
       run: ctest -V
 
-    - name: Configure Test of CMake Package
-      working-directory: ${{github.workspace}}
-      shell: bash
-      run: cmake -S $GITHUB_WORKSPACE/lua-config-package-tests -B build-pkg-test -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/sysroot
+    ## Test of installing as CXX doesn't really make sense
+    # - name: Configure Test of CMake Package
+    #   working-directory: ${{github.workspace}}
+    #   shell: bash
+    #   run: cmake -S $GITHUB_WORKSPACE/lua-config-package-tests -B build-pkg-test -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/sysroot
 
-    - name: Build Test of CMake Package
-      working-directory: ${{github.workspace}}
-      shell: bash
-      run: cmake --build build-pkg-test
+    # - name: Build Test of CMake Package
+    #   working-directory: ${{github.workspace}}
+    #   shell: bash
+    #   run: cmake --build build-pkg-test
