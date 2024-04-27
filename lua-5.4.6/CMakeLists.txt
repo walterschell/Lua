@@ -119,6 +119,7 @@ if(LUA_BUILD_BINARY)
         SET(CMAKE_REQUIRED_LIBRARIES tinfo)
     endif()
     CHECK_LIBRARY_EXISTS(readline readline "" HAVE_LIBRARY_READLINE)
+    SET(CMAKE_REQUIRED_LIBRARIES "")
 
     add_executable(lua "src/lua.c")
     # Can not use lua_shared because some symbols are not exported
