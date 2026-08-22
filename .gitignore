@@ -31,3 +31,9 @@
 # Debug files
 *.dSYM/
 *.su
+
+# Build directories
+bin/
+build/
+dist/
+out/
